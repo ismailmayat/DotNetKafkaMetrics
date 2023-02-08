@@ -32,17 +32,17 @@ void Producer(IConfiguration configuration1)
 
     CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-    Dictionary<string, string> dicConfig = new Dictionary<string, string>
+    var config = new ProducerConfig
     {
-        { "bootstrap.servers", "{your-broker-here}" },
-        { "security.protocol", "SASL_SSL" },
-        { "sasl.mechanisms", "PLAIN" },
-        { "sasl.username", "{you username here}" },
-        { "sasl.password", "{your password here}" },
-        { "session.timeout.ms", "45000" }
+        Partitioner = Partitioner.Murmur2Random, //important this is same as java, so if doing kstreams or ksqldb then you must use same partition algorithm as them
+        SecurityProtocol = SecurityProtocol.SaslSsl,
+        SaslMechanism = SaslMechanism.Plain,
+        SaslUsername = "",
+        SaslPassword = "",
+        BootstrapServers = ""
     };
 
-    var clientConfig = new ClientConfig(dicConfig);
+    var clientConfig = new ClientConfig(config);
 
     ProducerBuilder<Null, string> builder = new ProducerBuilder<Null, string>(clientConfig);
 
