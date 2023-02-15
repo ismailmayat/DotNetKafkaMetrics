@@ -60,18 +60,6 @@ void Producer(IConfiguration configuration1)
 
     using (var producer = builder.Build())
     {
-        Action<DeliveryReport<Null, string>> handler = r =>
-        {
-            if (r.Error.IsError)
-            {
-                Console.WriteLine($"Delivery Error: {r.Error.Reason}");
-            }
-            else
-            {
-                Console.WriteLine($"Delivered message to {r.TopicPartitionOffset}");
-            }
-        };
-
         int numMessages = 0;
         while (!cancellationTokenSource.IsCancellationRequested)
         {
@@ -80,7 +68,7 @@ void Producer(IConfiguration configuration1)
                 var dr = producer.ProduceAsync(configuration1.GetValue<string>("topic"),
                     new Message<Null, string> { Value = $"message {numMessages}" });
                 Console.WriteLine($"Delivered  message {numMessages} : {dr.Result.Value}");
-                Thread.Sleep(1000);
+                
                 numMessages++;
             }
             catch (ProduceException<Null, string> e)
@@ -90,6 +78,7 @@ void Producer(IConfiguration configuration1)
         }
 
         Console.WriteLine("Exit requested.");
+        
         producer.Flush(TimeSpan.FromSeconds(10));
     }
 
