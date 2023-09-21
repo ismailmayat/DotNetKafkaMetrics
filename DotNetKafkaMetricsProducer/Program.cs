@@ -6,8 +6,19 @@ using Confluent.Kafka;
 using DotNetKafkaMetricsProducer.Config;
 using Microsoft.Extensions.Configuration;
 using Prometheus;
+using Serilog;
 
 var configuration = GetConfiguration(args);
+IConfiguration Configuration;
+
+Configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .Build();
+             
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(Configuration)
+    .WriteTo.Console()
+    .CreateLogger();
 
 try
 {
@@ -15,11 +26,11 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"An error occurred while starting up the test. {ex}");
+    Log.Logger.Error($"An error occurred while starting up the test. {ex}");
     Environment.Exit(-2);
 }
 
-Console.WriteLine("Hello, World!");
+
 
 void Producer(IConfiguration configuration1)
 {
@@ -48,10 +59,15 @@ void Producer(IConfiguration configuration1)
 
     builder.SetErrorHandler((_, error) =>
     {
-        Console.WriteLine($"An error ocurred producing the event: {error.Reason}");
+        Log.Logger.Error($"An error ocurred producing the event: {error.Reason}");
         if (error.IsFatal) Environment.Exit(-1);
     });
 
+    builder.SetLogHandler((_, message) =>
+    {
+        Log.Logger.Debug(message.Message);
+    });
+    
     builder.HandleStatistics(new PrometheusProducerStatisticsHandler(new string[] { "application" },
         new string[] { "test-producer-statistics" }));
     builder.SetKeySerializer(Serializers.Null);
@@ -65,24 +81,25 @@ void Producer(IConfiguration configuration1)
         {
             try
             {
-                var dr = producer.ProduceAsync(configuration1.GetValue<string>("topic"),
+                var topic = configuration1.GetValue<string>("topic");
+                var dr = producer.ProduceAsync(topic,
                     new Message<Null, string> { Value = $"message {numMessages}" });
-                Console.WriteLine($"Delivered  message {numMessages} : {dr.Result.Value}");
+                Log.Logger.Information($"Delivered  message {numMessages} : {dr.Result.Value}");
                 
                 numMessages++;
             }
             catch (ProduceException<Null, string> e)
             {
-                Console.WriteLine($"Delivery failed: {e.Error.Reason}");
+                Log.Logger.Error($"Delivery failed: {e.Error.Reason}");
             }
         }
 
-        Console.WriteLine("Exit requested.");
+        Log.Logger.Information("Exit requested.");
         
         producer.Flush(TimeSpan.FromSeconds(10));
     }
 
-    Console.WriteLine("Exit requested. Gracefully exiting...");
+    Log.Logger.Information("Exit requested. Gracefully exiting...");
 }
 
 IConfiguration GetConfiguration(string[] args)

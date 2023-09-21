@@ -9,13 +9,17 @@
 
     <ItemGroup>
       <PackageReference Include="Com.RFranco.Kafka.Statistics.Prometheus" Version="1.0.2" />
-      <PackageReference Include="Confluent.Kafka" Version="1.9.3" />
+      <PackageReference Include="Confluent.Kafka" Version="2.2.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0-rc.1.22426.10" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0-rc.1.22426.10" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0-rc.1.23419.4" />
       <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="7.0.0-rc.1.22426.10" />
       <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0-rc.1.22426.10" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0-rc.1.22426.10" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0-rc.1.22426.10" />
+      <PackageReference Include="Serilog" Version="3.0.2-dev-02056" />
+        <PackageReference Include="Serilog.Extensions.Logging" Version="7.0.0" />
+        <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.2.0-dev-00918" />
     </ItemGroup>
 
     <ItemGroup>
