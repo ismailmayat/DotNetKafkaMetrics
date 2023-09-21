@@ -7,6 +7,7 @@ using DotNetKafkaMetricsProducer.Config;
 using Microsoft.Extensions.Configuration;
 using Prometheus;
 using Serilog;
+using Serilog.Events;
 
 var configuration = GetConfiguration(args);
 IConfiguration Configuration;
@@ -16,6 +17,7 @@ Configuration = new ConfigurationBuilder()
     .Build();
              
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Verbose()
     .ReadFrom.Configuration(Configuration)
     .WriteTo.Console()
     .CreateLogger();
@@ -50,15 +52,16 @@ void Producer(IConfiguration configuration1)
         SaslMechanism = SaslMechanism.Plain,
         SaslUsername = "",
         SaslPassword = "",
-        BootstrapServers = ""
+        BootstrapServers = "", 
+        Debug = "broker,topic,msg" // extra debugging from librdkafka
     };
 
     var clientConfig = new ClientConfig(config);
     
-    clientConfig.Debug = "broker,topic,msg";
-        
     ProducerBuilder<Null, string> builder = new ProducerBuilder<Null, string>(clientConfig);
 
+    Log.Logger.Debug("test");
+    
     builder.SetErrorHandler((_, error) =>
     {
         Log.Logger.Error($"An error ocurred producing the event: {error.Reason}");
@@ -79,14 +82,17 @@ void Producer(IConfiguration configuration1)
     using (var producer = builder.Build())
     {
         int numMessages = 0;
+        
+        var topic = configuration1.GetValue<string>("topic");
+        
         while (!cancellationTokenSource.IsCancellationRequested)
         {
             try
             {
-                var topic = configuration1.GetValue<string>("topic");
+               
                 var dr = producer.ProduceAsync(topic,
                     new Message<Null, string> { Value = $"message {numMessages}" });
-                Log.Logger.Information($"Delivered  message {numMessages} : {dr.Result.Value}");
+                Log.Logger.Information($"Delivered  message {numMessages} : {dr.Result.Value} partition {dr.Result.Partition.Value}, offset {dr.Result.Offset.Value}");
                 
                 numMessages++;
             }
