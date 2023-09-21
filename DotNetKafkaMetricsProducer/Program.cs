@@ -54,7 +54,9 @@ void Producer(IConfiguration configuration1)
     };
 
     var clientConfig = new ClientConfig(config);
-
+    
+    clientConfig.Debug = "broker,topic,msg";
+        
     ProducerBuilder<Null, string> builder = new ProducerBuilder<Null, string>(clientConfig);
 
     builder.SetErrorHandler((_, error) =>
